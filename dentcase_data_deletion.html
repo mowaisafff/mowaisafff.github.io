@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentCase – Data Deletion Request</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f7ff;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      width: 100%;
+      max-width: 560px;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .brand-icon {
+      width: 40px; height: 40px;
+      background: #2563eb; color: #fff;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700;
+    }
+    .brand-name { font-size: 20px; font-weight: 700; color: #1e3a8a; }
+    h1 { font-size: 22px; margin-bottom: 8px; color: #111827; }
+    .subtitle { font-size: 14px; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #374151; }
+    input, textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 14px; font-family: inherit;
+      margin-bottom: 16px;
+    }
+    input:focus, textarea:focus {
+      outline: none; border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    .checkbox-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 20px; font-size: 13px; color: #4b5563; line-height: 1.4;
+    }
+    .checkbox-row input { width: auto; margin-top: 3px; }
+    button {
+      width: 100%; padding: 12px;
+      background: #2563eb; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    .alt {
+      margin-top: 14px; text-align: center; font-size: 13px; color: #6b7280;
+    }
+    .alt a { color: #2563eb; font-weight: 600; }
+    .status {
+      margin-top: 16px; padding: 12px;
+      border-radius: 8px; font-size: 14px; line-height: 1.5;
+      display: none;
+    }
+    .status.success { display:block; background:#d1fae5; color:#065f46; }
+    .status.error   { display:block; background:#fee2e2; color:#991b1b; }
+    .status.info    { display:block; background:#dbeafe; color:#1e40af; }
+    .status.warn    { display:block; background:#fef3c7; color:#92400e; }
+    .status a { color: inherit; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+      <div class="brand-icon">D</div>
+      <div class="brand-name">DentCase</div>
+    </div>
+
+    <h1>Data Deletion Request</h1>
+    <p class="subtitle">
+      Use this form to request deletion of your personal data stored by
+      <strong>DentCase</strong>. Requests are processed within 30 days.
+    </p>
+
+    <form id="deletionForm" novalidate>
+      <label for="name">Full Name</label>
+      <input type="text" id="name" required>
+
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="The email you use in DentCase" required>
+
+      <label for="reason">Reason (optional)</label>
+      <textarea id="reason" placeholder="Any additional details..."></textarea>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="confirm" required>
+        <label for="confirm" style="font-weight:normal;margin:0;">
+          I confirm that I am the owner of the DentCase account associated with
+          this email and understand that deletion is permanent.
+        </label>
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Request</button>
+    </form>
+
+    <!-- Visible fallback button — always works, even if JS breaks -->
+    <p class="alt">
+      Problems submitting?
+      <a id="directMail" href="mailto:mowais.addd@gmail.com?subject=DentCase%20%E2%80%93%20Data%20Deletion%20Request">
+        Email us directly
+      </a>
+    </p>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    const CONTACT_EMAIL = 'mowais.addd@gmail.com';
+    const form      = document.getElementById('deletionForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusBox = document.getElementById('status');
+
+    function show(type, html) {
+      statusBox.className = 'status ' + type;
+      statusBox.innerHTML = html;
+    }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function buildMailto(name, email, reason) {
+      const body = [
+        'DentCase – Data Deletion Request', '',
+        'Name: '  + name,
+        'Email: ' + email,
+        'Reason: ' + (reason || 'Not provided'),
+        'Submitted: ' + new Date().toISOString()
+      ].join('\n');
+      return 'mailto:' + CONTACT_EMAIL
+        + '?subject=' + encodeURIComponent('DentCase – Data Deletion Request')
+        + '&body='    + encodeURIComponent(body);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name    = document.getElementById('name').value.trim();
+      const email   = document.getElementById('email').value.trim();
+      const reason  = document.getElementById('reason').value.trim();
+      const confirm = document.getElementById('confirm').checked;
+
+      // ---- Validate ----
+      if (!name || !email)  return show('error', '❌ Please fill in your name and email address.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return show('error', '❌ Please enter a valid email address.');
+      if (!confirm) return show('error', '❌ Please tick the confirmation checkbox.');
+
+      // Update the visible fallback link too
+      document.getElementById('directMail').href = buildMailto(name, email, reason);
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      show('info', '⏳ Submitting your request...');
+
+      // ---- Attempt AJAX submission with timeout ----
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const res = await fetch(
+          'https://formsubmit.co/ajax/' + CONTACT_EMAIL,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              _subject:  'DentCase – Data Deletion Request',
+              _template: 'table',
+              _captcha:  'false',          // ← critical: AJAX can't render captcha
+              _replyto:  email,             // ← reply-to becomes the sender
+              App:       'DentCase',
+              Name:      name,
+              Email:     email,
+              Reason:    reason || 'Not provided',
+              Submitted: new Date().toISOString()
+            })
+          }
+        );
+
+        // ⚠️ FormSubmit returns HTTP 200 even on failure — check the BODY
+        const data = await res.json().catch(() => ({}));
+        const ok = data && (data.success === 'true' || data.success === true);
+
+        if (ok) {
+          show('success',
+            '✅ Your deletion request has been submitted. ' +
+            'A confirmation email is on its way to <strong>' + esc(email) + '</strong>. ' +
+            'DentCase data linked to this address will be deleted within 30 days.');
+          form.reset();
+          return;
+        }
+
+        // FormSubmit reports failure — surface its message
+        const msg = (data && data.message) || 'Unknown error';
+
+        // Special-case: not activated yet
+        if (/activat/i.test(msg)) {
+          show('warn',
+            '⚠️ The form is not activated yet on our side. Please ' +
+            '<a href="' + buildMailto(name, email, reason) + '">send your request by email</a> ' +
+            'in the meantime.');
+          return;
+        }
+        throw new Error(msg);
+
+      } catch (err) {
+        // ---- Fallback: mailto ----
+        const mailto = buildMailto(name, email, reason);
+        const reasonText = err.name === 'AbortError'
+          ? 'The request timed out.'
+          : esc(err.message);
+
+        show('error',
+          '❌ Automatic submission failed (' + reasonText + ').<br><br>' +
+          '👉 <a href="' + mailto + '">Click here to send it by email instead</a>, ' +
+          'or write to <a href="mailto:' + CONTACT_EMAIL + '">' + CONTACT_EMAIL + '</a> directly.');
+
+        window.location.href = mailto; // convenience
+      } finally {
+        clearTimeout(timer);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Request';
+      }
+    });
+  </script>
+</body>
+</html>
